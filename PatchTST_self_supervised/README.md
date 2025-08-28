@@ -33,6 +33,17 @@ python patchtst_finetune.py --dset HTV2 --is_finetune 1 --pretrained_mode saved_
 python patchtst_finetune.py --dset processed_data_55 --is_finetune 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
 ```
 
+- only test script 仅仅用于测试
+
+```sh
+python patchtst_finetune.py --dset <target_domain_name> --pretrained_model <module_path>
+
+# examples
+python patchtst_finetune.py --dset CAV-H
+python patchtst_finetune.py --dset s0.3548_m907
+python patchtst_finetune.py --dset HTV2
+```
+
 ## 二、结果保存
 
 > 以 `processed_data_55为例`

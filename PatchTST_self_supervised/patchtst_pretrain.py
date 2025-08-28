@@ -47,7 +47,7 @@ parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
 # model id to keep track of the number of models saved
 parser.add_argument('--pretrained_model_id', type=int, default=1, help='id of the saved pretrained model')
 parser.add_argument('--model_type', type=str, default='based_model', help='for multivariate model or univariate model')
-
+parser.add_argument('--dataset_size', type=str, default='41104', help='dataset relative dir')
 
 args = parser.parse_args()
 print('args:', args)

@@ -26,7 +26,7 @@ parser.add_argument('--is_linear_probe', type=int, default=0, help='if linear_pr
 parser.add_argument('--dset_finetune', type=str, default='dim1', help='dataset name')
 parser.add_argument('--context_points', type=int, default=100, help='sequence length')
 parser.add_argument('--target_points', type=int, default=100, help='forecast horizon')
-parser.add_argument('--batch_size', type=int, default=32, help='batch size')
+parser.add_argument('--batch_size', type=int, default=64, help='batch size')
 parser.add_argument('--num_workers', type=int, default=0, help='number of workers for DataLoader')
 parser.add_argument('--scaler', type=str, default='standard', help='scale the input data')
 parser.add_argument('--features', type=str, default='M', help='for multivariate model or univariate model')
@@ -34,9 +34,9 @@ parser.add_argument('--features', type=str, default='M', help='for multivariate 
 parser.add_argument('--patch_len', type=int, default=20, help='patch length')
 parser.add_argument('--stride', type=int, default=20, help='stride between patch')
 # RevIN
-parser.add_argument('--revin', type=int, default=1, help='reversible instance normalization')
+parser.add_argument('--revin', type=int, default=0, help='reversible instance normalization')
 # use time feature
-parser.add_argument('--use_time_features', type=int, default=0, help='use time feature')
+parser.add_argument('--use_time_features', type=int, default=1, help='use time feature')
 # Model args
 parser.add_argument('--n_layers', type=int, default=3, help='number of Transformer layers')
 parser.add_argument('--n_heads', type=int, default=16, help='number of Transformer heads')
@@ -52,11 +52,13 @@ parser.add_argument('--pretrained_model', type=str, default=None, help='pretrain
 # model id to keep track of the number of models saved
 parser.add_argument('--finetuned_model_id', type=int, default=1, help='id of the saved finetuned model')
 parser.add_argument('--model_type', type=str, default='based_model', help='for multivariate model or univariate model')
+# others
+parser.add_argument('--dataset_size', type=str, default='5138', help='dataset relative dir')
 
 
 args = parser.parse_args()
 print('args:', args)
-args.save_path = 'saved_models/' + args.dset_finetune + '/masked_patchtst/' + args.model_type + '/'
+args.save_path = 'saved_models/' + args.dataset_size + '/' + args.dset_finetune + '/masked_patchtst/' + args.model_type + '/'
 if not os.path.exists(args.save_path): os.makedirs(args.save_path)
 
 # args.save_finetuned_model = '_cw'+str(args.context_points)+'_tw'+str(args.target_points) + '_patch'+str(args.patch_len) + '_stride'+str(args.stride) + '_epochs-finetune' + str(args.n_epochs_finetune) + '_mask' + str(args.mask_ratio)  + '_model' + str(args.finetuned_model_id)

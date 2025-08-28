@@ -17,9 +17,12 @@ def get_dls(params):
     
     # assert params.dset in DSETS, f"Unrecognized dset (`{params.dset}`). Options include: {DSETS}"
     if not hasattr(params,'use_time_features'): params.use_time_features = False
+
+    # root_path = './dataset/' + params.dataset_size + '/both/'
+    # root_path = './dataset/' + params.dataset_size + '/only-dg/'
+    root_path = './dataset/' + params.dataset_size + '/'
         
     if params.dset == 'source_domain':
-        root_path = './dataset/'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
                 datasetCls=Dataset_Custom,      # dataset class: 数据集类
@@ -36,7 +39,6 @@ def get_dls(params):
                 )
 
     elif params.dset == 'processed_data_55':
-        root_path = './dataset/'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
                 datasetCls=Dataset_Custom,
@@ -53,7 +55,6 @@ def get_dls(params):
                 )
     
     elif params.dset == 's0.3548_m907':
-        root_path = './dataset/'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
                 datasetCls=Dataset_Custom,
@@ -70,7 +71,6 @@ def get_dls(params):
                 )
 
     elif params.dset == 'CAV-H':
-        root_path = './dataset/'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
                 datasetCls=Dataset_Custom,
@@ -87,7 +87,6 @@ def get_dls(params):
                 )
 
     elif params.dset == 'HTV2':
-        root_path = './dataset/'
         size = [params.context_points, 0, params.target_points]
         dls = DataLoaders(
                 datasetCls=Dataset_Custom,
