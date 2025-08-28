@@ -90,11 +90,11 @@ class PatchTST(nn.Module):
             self.head = ClassificationHead(self.n_vars, d_model, target_dim, head_dropout)
 
 
-    def forward(self, z):                             
+    def forward(self, z, z_mark):                             
         """
         z: tensor [bs x num_patch x n_vars x patch_len]
         """   
-        z = self.backbone(z)                                                                # z: [bs x nvars x d_model x num_patch]
+        z = self.backbone(z, z_mark)                                   # z: [bs x nvars x d_model x num_patch]
         z = self.head(z)                                                                    
         # z: [bs x target_dim x nvars] for prediction
         #    [bs x target_dim] for regression
@@ -224,7 +224,9 @@ class PatchTSTEncoder(nn.Module):
         pre_norm=False,
         pe='zeros', 
         learn_pe=True, 
-        verbose=False, 
+        verbose=False,
+        embed_type="fixed",
+        freq='h',
         **kwargs
     ):
 
@@ -245,6 +247,11 @@ class PatchTSTEncoder(nn.Module):
         # Positional encoding
         self.W_pos = positional_encoding(pe, learn_pe, num_patch, d_model)
 
+        # TimeFeature encoding
+        # self.temporal_embedding = TimeFeatureEmbedding(d_model=d_model, embed_type=embed_type, freq=freq)
+
+        # time 
+
         # Residual dropout
         self.dropout = nn.Dropout(dropout)
 
@@ -263,7 +270,7 @@ class PatchTSTEncoder(nn.Module):
             store_attn=store_attn
         )
 
-    def forward(self, x) -> Tensor:
+    def forward(self, x, x_mark) -> Tensor:
         """
         x: tensor [bs x num_patch x nvars x patch_len]
         """
@@ -277,9 +284,14 @@ class PatchTSTEncoder(nn.Module):
             x = torch.stack(x_out, dim=2)
         else:
             x = self.W_P(x)                                                      # x: [bs x num_patch x nvars x d_model]
-        x = x.transpose(1,2)                                                     # x: [bs x nvars x num_patch x d_model]        
-
+        x = x.transpose(1,2)      
         u = torch.reshape(x, (bs*n_vars, num_patch, self.d_model) )              # u: [bs * nvars x num_patch x d_model]
+        
+        # x_mark = torch.reshape(x_mark, (bs, num_patch, 20))
+        # v = self.temporal_embedding(x_mark)
+        # v = v.repeat(n_vars, 1, 1)
+
+        # u = self.dropout(u + self.W_pos + v)                                         # u: [bs * nvars x num_patch x d_model]
         u = self.dropout(u + self.W_pos)                                         # u: [bs * nvars x num_patch x d_model]
 
         # Encoder

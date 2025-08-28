@@ -172,7 +172,7 @@ class Learner(GetAttr):
 
     def train_step(self, batch):
         # get the inputs
-        self.xb, self.yb = batch
+        self.xb, self.yb, self.xb_mark, self.yb_mark = batch
         # forward
         pred = self.model_forward()
         # compute loss
@@ -181,7 +181,7 @@ class Learner(GetAttr):
 
     def model_forward(self):
         self('before_forward')
-        self.pred = self.model(self.xb)
+        self.pred = self.model(self.xb, self.xb_mark)
         self('after_forward')
         return self.pred
 
@@ -191,7 +191,7 @@ class Learner(GetAttr):
 
     def valid_step(self, batch):
         # get the inputs
-        self.xb, self.yb = batch
+        self.xb, self.yb, self.xb_mark, self.yb_mark = batch
         # forward
         pred = self.model_forward()
         # compute loss
@@ -204,7 +204,7 @@ class Learner(GetAttr):
            
     def predict_step(self, batch):
         # get the inputs
-        self.xb, self.yb = batch
+        self.xb, self.yb, self.xb_mark, self.yb_mark = batch
         # forward
         pred = self.model_forward()
         return pred 
@@ -214,7 +214,7 @@ class Learner(GetAttr):
            
     def test_step(self, batch):
         # get the inputs
-        self.xb, self.yb = batch
+        self.xb, self.yb, self.xb_mark, self.yb_mark = batch
         # forward
         pred = self.model_forward()
         return pred, self.yb

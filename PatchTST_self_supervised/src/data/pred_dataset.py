@@ -18,7 +18,7 @@ np.set_printoptions(threshold=np.inf) # print打印时不缩略
 class Dataset_Custom(Dataset):
     def __init__(self, root_path, split='train', size=None,
                  features='M', data_path='ETTh1.csv',
-                 target='OT', scale=True, timeenc=0, freq='h',
+                 target='OT', scale=True, timeenc=1, freq='m',
                  time_col_name='date', use_time_features=False, 
                  train_split=0.7, test_split=0.2
                  ):

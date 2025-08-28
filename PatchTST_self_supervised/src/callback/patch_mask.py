@@ -24,8 +24,10 @@ class PatchCB(Callback):
         take xb from learner and convert to patch: [bs x seq_len x n_vars] -> [bs x num_patch x n_vars x patch_len]
         """
         xb_patch, num_patch = create_patch(self.xb, self.patch_len, self.stride)    # xb: [bs x seq_len x n_vars]
+        xb_mark_patch, num_patch = create_patch(self.xb_mark, self.patch_len, self.stride)
         # learner get the transformed input
-        self.learner.xb = xb_patch                              # xb_patch: [bs x num_patch x n_vars x patch_len]           
+        self.learner.xb = xb_patch                              # xb_patch: [bs x num_patch x n_vars x patch_len]       
+        self.learner.xb_mark = xb_mark_patch    
 
 
 class PatchMaskCB(Callback):
