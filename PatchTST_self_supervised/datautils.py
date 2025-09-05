@@ -27,7 +27,7 @@ def get_dls(params):
         dls = DataLoaders(
                 datasetCls=Dataset_Custom,      # dataset class: 数据集类
                 dataset_kwargs={                # dataset key word args
-                'root_path': root_path,
+                'root_path': './dataset/others/',
                 'data_path': 'source_domain.csv',
                 'features': params.features,    # M MS S
                 'scale': True, # True           # scale 处理

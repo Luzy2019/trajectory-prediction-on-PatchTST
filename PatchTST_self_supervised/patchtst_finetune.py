@@ -246,7 +246,9 @@ if __name__ == '__main__':
 
     else:
         args.dset = args.dset_finetune
-        weight_path = args.save_path+args.dset_finetune+'_patchtst_finetuned'+suffix_name
+        # weight_path = args.save_path+args.dset_finetune+'_patchtst_finetuned'+suffix_name
+        weight_path = 'saved_models/5138/source_domain/masked_patchtst/based_model/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1'
+        print('weight_path',weight_path)
         # Test
         out = test_func(weight_path)        
         print('----------- Complete! -----------')

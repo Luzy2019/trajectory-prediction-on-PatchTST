@@ -19,6 +19,8 @@ python patchtst_finetune.py --dset CAV-H --is_linear_probe 1 --pretrained_mode s
 python patchtst_finetune.py --dset s0.3548_m907 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
 python patchtst_finetune.py --dset HTV2 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
 python patchtst_finetune.py --dset processed_data_55 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+
+python patchtst_finetune.py --dset source_domain --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
 ```
 
 - fine-tuning script 全部参数微调
