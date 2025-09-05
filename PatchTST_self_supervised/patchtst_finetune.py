@@ -31,8 +31,8 @@ parser.add_argument('--num_workers', type=int, default=0, help='number of worker
 parser.add_argument('--scaler', type=str, default='standard', help='scale the input data')
 parser.add_argument('--features', type=str, default='M', help='for multivariate model or univariate model')
 # Patch
-parser.add_argument('--patch_len', type=int, default=20, help='patch length')
-parser.add_argument('--stride', type=int, default=20, help='stride between patch')
+parser.add_argument('--patch_len', type=int, default=100, help='patch length')
+parser.add_argument('--stride', type=int, default=100, help='stride between patch')
 # RevIN
 parser.add_argument('--revin', type=int, default=0, help='reversible instance normalization')
 # use time feature
@@ -246,8 +246,8 @@ if __name__ == '__main__':
 
     else:
         args.dset = args.dset_finetune
-        # weight_path = args.save_path+args.dset_finetune+'_patchtst_finetuned'+suffix_name
-        weight_path = 'saved_models/5138/source_domain/masked_patchtst/based_model/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1'
+        weight_path = args.save_path+args.dset_finetune+'_patchtst_finetuned'+suffix_name
+        # weight_path = 'saved_models/5138/source_domain/masked_patchtst/based_model/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1'
         print('weight_path',weight_path)
         # Test
         out = test_func(weight_path)        
