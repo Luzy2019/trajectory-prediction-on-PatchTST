@@ -81,3 +81,7 @@ python patchtst_finetune.py --dset HTV2 --pretrained_model saved_models/source_d
 
 > 源域预训练的模型保存在
 >`saved_models\source_domain\patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth`
+
+
+# 项目操作步骤
+查看`operation.md`
