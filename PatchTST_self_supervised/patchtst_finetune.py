@@ -44,6 +44,7 @@ parser.add_argument('--d_model', type=int, default=64, help='Transformer d_model
 parser.add_argument('--d_ff', type=int, default=256, help='Tranformer MLP dimension')
 parser.add_argument('--dropout', type=float, default=0.2, help='Transformer dropout')
 parser.add_argument('--head_dropout', type=float, default=0.2, help='head dropout')
+parser.add_argument('--partial_freeze', type=int, default=0, help='head dropout')
 # Optimization args
 parser.add_argument('--n_epochs_finetune', type=int, default=20, help='number of finetuning epochs')
 parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
@@ -154,7 +155,7 @@ def finetune_func(lr=args.lr):
                         )                            
     # fit the data to the model
     #learn.fit_one_cycle(n_epochs=args.n_epochs_finetune, lr_max=lr)
-    learn.fine_tune(n_epochs=args.n_epochs_finetune, base_lr=lr, freeze_epochs=10)
+    learn.fine_tune(n_epochs=args.n_epochs_finetune, base_lr=lr, freeze_epochs=10, partial_freeze=args.partial_freeze)
 
 def linear_probe_func(lr=args.lr):
     print('linear probing')

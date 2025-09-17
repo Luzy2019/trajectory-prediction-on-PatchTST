@@ -14,10 +14,11 @@ python patchtst_pretrain.py --dset source_domain
 python patchtst_finetune.py --dset <target_domain_name> --is_finetune 1 --pretrained_model <module_path>
 
 # examples
-python patchtst_finetune.py --dset CAV-H --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
-python patchtst_finetune.py --dset s0.3548_m907 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
-python patchtst_finetune.py --dset HTV2 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
-python patchtst_finetune.py --dset processed_data_55 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+python patchtst_finetune.py --dset CAV-H --is_linear_probe 1 --pretrained_mode saved_models/source_domain/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+
+python patchtst_finetune.py --dset s0.3548_m907 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+
+python patchtst_finetune.py --dset HTV2 --is_linear_probe 1 --pretrained_mode saved_models/source_domain/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
 
 python patchtst_finetune.py --dset source_domain --is_linear_probe 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
 ```
@@ -37,14 +38,16 @@ python patchtst_finetune.py --dset processed_data_55 --is_finetune 1 --pretraine
 - only test script 仅仅用于测试
 
 ```sh
-python patchtst_finetune.py --dset <target_domain_name> --pretrained_model <module_path>
+python patchtst_finetune.py --dset <target_domain_name> --pretrained_model <module_path> --patch_len <patch_len> --stride <stride> --dataset_size <dataset_size>
 
 # examples
-python patchtst_finetune.py --patch_len 20 --stride 20 --dset CAV-H
-python patchtst_finetune.py --patch_len 20 --stride 20 --dset s0.3548_m907 --dataset_size 10276
-python patchtst_finetune.py --patch_len 20 --stride 20 --dset HTV2 --dataset_size 10276
+# 测试 fine-tune
+python patchtst_finetune.py --dset s0.3548_m907 --patch_len 20 --stride 20 --dataset_size 5138
+python patchtst_finetune.py --dset HTV2 --patch_len 20 --stride 20 --dataset_size 5138
+python patchtst_finetune.py --dset CAV-H --patch_len 20 --stride 20 --dataset_size 5138
 
-python patchtst_finetune.py --dset CAV-H --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1 --dataset_size 20552
+# 测试linear-probe
+python patchtst_finetune.py --dset CAV-H --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
 python patchtst_finetune.py --dset s0.3548_m907 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
 python patchtst_finetune.py --dset HTV2 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
 ```
@@ -53,11 +56,9 @@ python patchtst_finetune.py --dset HTV2 --pretrained_model saved_models/source_d
 
 > 以 `processed_data_55为例`
 > 
-> - `base_dir`: saved_models\processed_data_55\masked_patchtst\based_model\xxx
-> - 文件路径中包含fine-tuned为整体微调的结果以及模型
-> - 文件路径中包含linear-probe为仅微调head的结果以及模型
+> - `base_dir`: saved_results\\CAV-H\\[dataset_size]\\xxx.csv
 
-1. acc_9dim.csv（重要）
+1. acc_9dim.csv
 
 微调后，9个feature的各自mse,mae结果，用于计算后三维的mse,mae
 
@@ -69,15 +70,14 @@ python patchtst_finetune.py --dset HTV2 --pretrained_model saved_models/source_d
 
 微调后，整体的w-distance以及9个feature的各自w-distance
 
-
 ## 三、模型保存
 
-> 以 `processed_data_55为例`
+> 以 `CAV-H为例`
 > 
-> - `base_dir`: saved_models\processed_data_55\masked_patchtst\based_model\xxx
+> - `base_dir`: saved_models\CAV-H\xxx.pth
 > - 文件路径中包含fine-tuned为整体微调的结果以及模型
 > - 文件路径中包含linear-probe为仅微调head的结果以及模型
 
 
 > 源域预训练的模型保存在
->`saved_models\source_domain\masked_patchtst\based_model\patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth`
+>`saved_models\source_domain\patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth`

@@ -326,7 +326,7 @@ class Learner(GetAttr):
         return get_layer_output(inp, model=self.model, layers=layers, unwrap=unwrap)
     
 
-    def fine_tune(self, n_epochs, base_lr=None, freeze_epochs=1, pct_start=0.3):
+    def fine_tune(self, n_epochs, base_lr=None, freeze_epochs=1, pct_start=0.3, partial_freeze=0):
         """
         fintune the pretrained model. First the entire model is freezed, only head is trained
         up to a freeze_epochs number. Then the model is unfreezed and the entire model is trained
@@ -342,7 +342,7 @@ class Learner(GetAttr):
         # Finetune the entire network if n_epochs > 0
         if n_epochs > 0:
             print('Finetune the entire network')        
-            self.unfreeze()
+            self.unfreeze(partial_freeze)
             self.fit_one_cycle(n_epochs, lr_max=base_lr/2, pct_start=pct_start)
     
 
@@ -388,9 +388,17 @@ class Learner(GetAttr):
             # print('model is frozen except the head')
             
             
-    def unfreeze(self):
-        for param in get_model(self.model).parameters(): param.requires_grad = True        
+    def unfreeze(self, partial_freeze):
+        if partial_freeze:
+            # for param in get_model(self.model).backbone.W_P.parameters(): param.requires_grad = True
+            # for param in get_model(self.model).backbone.dropout.parameters(): param.requires_grad = True
+            if not get_model(self.model): raise Exception("unfreeze failed, no model found...")
 
+            # partial unfreeze
+            for layer in get_model(self.model).backbone.encoder.layers:
+                for param in layer.parameters(): param.requires_grad = True
+        else:
+            for param in get_model(self.model).parameters(): param.requires_grad = True
 
     def __call__(self, name):        
         for cb in self.cbs: 
