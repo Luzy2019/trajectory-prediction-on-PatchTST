@@ -455,7 +455,7 @@ def save_model(path, model, opt, with_opt=True, pickle_protocol=2):
 
 def load_model(path, model, opt=None, with_opt=False, device='cpu', strict=True):
     " load the saved model "
-    state = torch.load(path, map_location=device)
+    state = torch.load(path, map_location=device, weights_only=True)
     if not opt: with_opt=False
     model_state = state['model'] if with_opt else state
     get_model(model).load_state_dict(model_state, strict=strict)
@@ -486,7 +486,7 @@ def get_model(model):
 '''
 def transfer_weights(weights_path, model, exclude_head=True, device='cpu'):
     # state_dict = model.state_dict()
-    new_state_dict = torch.load(weights_path, map_location=device)
+    new_state_dict = torch.load(weights_path, map_location=device, weights_only=True)
     matched_layers = 0
     unmatched_layers = []
     for name, param in model.state_dict().items(): 
