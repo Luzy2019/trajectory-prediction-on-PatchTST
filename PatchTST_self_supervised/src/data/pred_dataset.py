@@ -5,14 +5,7 @@ import os
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import StandardScaler
-
 from src.data.timefeatures import time_features
-import warnings
-
-warnings.filterwarnings('ignore')
-
-import numpy as np
-np.set_printoptions(threshold=np.inf) # print打印时不缩略
 
 # 数据集
 class Dataset_Custom(Dataset):

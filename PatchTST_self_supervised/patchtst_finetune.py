@@ -17,6 +17,13 @@ from src.basics import set_device
 from datautils import *
 
 import argparse
+import warnings
+
+torch.set_printoptions(precision=16)
+torch.set_default_dtype(torch.float64)
+np.set_printoptions(threshold=np.inf) # print打印时不缩略
+
+warnings.filterwarnings('ignore')
 
 parser = argparse.ArgumentParser()
 # Pretraining and Finetuning
@@ -52,13 +59,10 @@ parser.add_argument('--pretrained_model', type=str, default=None, help='pretrain
 # model id to keep track of the number of models saved
 parser.add_argument('--finetuned_model_id', type=int, default=1, help='id of the saved finetuned model')
 parser.add_argument('--model_type', type=str, default='based_model', help='for multivariate model or univariate model')
-# others
-parser.add_argument('--dataset_size', type=str, default='5138', help='dataset relative dir')
-
 
 args = parser.parse_args()
 print('args:', args)
-args.save_path = 'saved_models/' + args.dataset_size + '/' + args.dset_finetune + '/masked_patchtst/' + args.model_type + '/'
+args.save_path = 'saved_models/' + args.dset_finetune + '/masked_patchtst/' + args.model_type + '/'
 if not os.path.exists(args.save_path): os.makedirs(args.save_path)
 
 # args.save_finetuned_model = '_cw'+str(args.context_points)+'_tw'+str(args.target_points) + '_patch'+str(args.patch_len) + '_stride'+str(args.stride) + '_epochs-finetune' + str(args.n_epochs_finetune) + '_mask' + str(args.mask_ratio)  + '_model' + str(args.finetuned_model_id)

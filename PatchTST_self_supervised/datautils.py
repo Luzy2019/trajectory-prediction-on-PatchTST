@@ -9,9 +9,8 @@ import sys
 from src.data.datamodule import DataLoaders
 from src.data.pred_dataset import *
 
-DSETS = ['ettm1', 'ettm2', 'etth1', 'etth2', 'electricity',
-         'traffic', 'illness', 'weather', 'exchange', 'dim1', 'dim2', 'dim3'
-        ]
+ROOT_PATH = './dataset/'
+DSETS = ['source_domain', 's0.3548_m907', 'CAV-H', 'HTV2']
 
 def get_dls(params):
     
@@ -107,48 +106,3 @@ def get_dls(params):
     dls.c = dls.train.dataset[0][1].shape[0]
     # dls.vars = 9, dls.len = 3, dls.c = 2
     return dls
-
-if __name__ == "__main__":
-    
-    class Params:
-        dset= 'dim1'
-        context_points= 3
-        target_points= 3
-        batch_size= 8
-        num_workers= 0
-        with_ray= False
-        features='M'
-    params = Params 
-    dls = get_dls(params)
-
-    print('dls.train.length', len(dls.train)) # 2
-    print('dls.test.length', len(dls.test)) # 2
-    # print('dls.valid.length', len(dls.valid)) # 2
-
-    # print('dls.train', dls.train)
-
-    
-    for i, batch in enumerate(dls.train):
-        print(batch)
-        print(i, len(batch), batch[0].shape, batch[1].shape)
-
-    print()
-    print('========================')
-    print()
-
-    # for i, batch in enumerate(dls.valid):
-    #     print(i, len(batch), batch[0].shape, batch[1].shape)
-
-    # print()
-    # print('========================')
-    # print()
-
-    '''
-        enumerate():
-            用于将一个可遍历的数据对象(如列表、元组或字符串)组合为一个索引序列，同时列出数据和数据下标，一般用在 for 循环当中。
-    '''
-    for i, batch in enumerate(dls.test):
-        print(batch)
-        print(i, len(batch), batch[0].shape, batch[1].shape)
-        
-    # breakpoint()
