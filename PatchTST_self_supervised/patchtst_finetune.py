@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import pandas as pd
 import os
@@ -17,26 +15,21 @@ from src.basics import set_device
 from datautils import *
 
 import argparse
-import warnings
-
-torch.set_printoptions(precision=16)
-torch.set_default_dtype(torch.float64)
-np.set_printoptions(threshold=np.inf) # print打印时不缩略
-
-warnings.filterwarnings('ignore')
-
 parser = argparse.ArgumentParser()
+
 # Pretraining and Finetuning
 parser.add_argument('--is_finetune', type=int, default=0, help='do finetuning or not')
 parser.add_argument('--is_linear_probe', type=int, default=0, help='if linear_probe: only finetune the last layer')
 # Dataset and dataloader
-parser.add_argument('--dset_finetune', type=str, default='dim1', help='dataset name')
+parser.add_argument('--dset_finetune', type=str, default='source_domain', help='dataset name')
 parser.add_argument('--context_points', type=int, default=100, help='sequence length')
 parser.add_argument('--target_points', type=int, default=100, help='forecast horizon')
 parser.add_argument('--batch_size', type=int, default=64, help='batch size')
 parser.add_argument('--num_workers', type=int, default=0, help='number of workers for DataLoader')
 parser.add_argument('--scaler', type=str, default='standard', help='scale the input data')
 parser.add_argument('--features', type=str, default='M', help='for multivariate model or univariate model')
+parser.add_argument('--dataset_size', type=str, default='5138', help='dataset size for finetuning')
+parser.add_argument('--dataset_augmented', type=int, default=0, help='use the augmented dataset to finetune model')
 # Patch
 parser.add_argument('--patch_len', type=int, default=100, help='patch length')
 parser.add_argument('--stride', type=int, default=100, help='stride between patch')
@@ -61,9 +54,10 @@ parser.add_argument('--finetuned_model_id', type=int, default=1, help='id of the
 parser.add_argument('--model_type', type=str, default='based_model', help='for multivariate model or univariate model')
 
 args = parser.parse_args()
-print('args:', args)
-args.save_path = 'saved_models/' + args.dset_finetune + '/masked_patchtst/' + args.model_type + '/'
-if not os.path.exists(args.save_path): os.makedirs(args.save_path)
+args.model_path = 'saved_models/' + args.dset_finetune + '/'
+if not os.path.exists(args.model_path): os.makedirs(args.model_path)
+args.result_path = 'saved_results/' + args.dset_finetune + '/' + args.dataset_size + '/'
+if not os.path.exists(args.result_path): os.makedirs(args.result_path)
 
 # args.save_finetuned_model = '_cw'+str(args.context_points)+'_tw'+str(args.target_points) + '_patch'+str(args.patch_len) + '_stride'+str(args.stride) + '_epochs-finetune' + str(args.n_epochs_finetune) + '_mask' + str(args.mask_ratio)  + '_model' + str(args.finetuned_model_id)
 suffix_name = '_cw'+str(args.context_points)+'_tw'+str(args.target_points) + '_patch'+str(args.patch_len) + '_stride'+str(args.stride) + '_epochs-finetune' + str(args.n_epochs_finetune) + '_model' + str(args.finetuned_model_id)
@@ -115,7 +109,7 @@ def find_lr(head_type):
     dls = get_dls(args)    
     model = get_model(dls.vars, args, head_type)
     # transfer weight
-    # weight_path = args.save_path + args.pretrained_model + '.pth'
+    # weight_path = args.model_path + args.pretrained_model + '.pth'
     model = transfer_weights(args.pretrained_model, model)
     # get loss
     loss_func = torch.nn.MSELoss(reduction='mean')
@@ -134,14 +128,6 @@ def find_lr(head_type):
     print('suggested_lr', suggested_lr)
     return suggested_lr
 
-
-def save_recorders(learn):
-    train_loss = learn.recorder['train_loss']
-    valid_loss = learn.recorder['valid_loss']
-    df = pd.DataFrame(data={'train_loss': train_loss, 'valid_loss': valid_loss})
-    df.to_csv(args.save_path + args.save_finetuned_model + '_losses.csv', float_format='%.6f', index=False)
-
-
 def finetune_func(lr=args.lr):
     print('end-to-end finetuning')
     # get dataloader
@@ -157,7 +143,7 @@ def finetune_func(lr=args.lr):
     cbs = [RevInCB(dls.vars, denorm=True)] if args.revin else []
     cbs += [
          PatchCB(patch_len=args.patch_len, stride=args.stride),
-         SaveModelCB(monitor='valid_loss', fname=args.save_finetuned_model, path=args.save_path)
+         SaveModelCB(monitor='valid_loss', fname=args.save_finetuned_model, path=args.model_path)
         ]
     # define learner
     learn = Learner(dls, model, 
@@ -169,8 +155,6 @@ def finetune_func(lr=args.lr):
     # fit the data to the model
     #learn.fit_one_cycle(n_epochs=args.n_epochs_finetune, lr_max=lr)
     learn.fine_tune(n_epochs=args.n_epochs_finetune, base_lr=lr, freeze_epochs=10)
-    save_recorders(learn)
-
 
 def linear_probe_func(lr=args.lr):
     print('linear probing')
@@ -179,7 +163,7 @@ def linear_probe_func(lr=args.lr):
     # get model 
     model = get_model(dls.vars, args, head_type='prediction')
     # transfer weight
-    # weight_path = args.save_path + args.pretrained_model + '.pth'
+    # weight_path = args.model_path + args.pretrained_model + '.pth'
     model = transfer_weights(args.pretrained_model, model)
     # get loss
     loss_func = torch.nn.MSELoss(reduction='mean')    
@@ -187,7 +171,7 @@ def linear_probe_func(lr=args.lr):
     cbs = [RevInCB(dls.vars, denorm=True)] if args.revin else []
     cbs += [
          PatchCB(patch_len=args.patch_len, stride=args.stride),
-         SaveModelCB(monitor='valid_loss', fname=args.save_finetuned_model, path=args.save_path)
+         SaveModelCB(monitor='valid_loss', fname=args.save_finetuned_model, path=args.model_path)
         ]
     # define learner
     learn = Learner(dls, model, 
@@ -198,16 +182,15 @@ def linear_probe_func(lr=args.lr):
                         )                            
     # fit the data to the model
     learn.linear_probe(n_epochs=args.n_epochs_finetune, base_lr=lr)
-    save_recorders(learn)
 
 def save_format_result(out):
     # 输出9维的mse,mae
-    pd.DataFrame(np.array(out[3]).reshape(9,-1), columns=['mse','mae']).to_csv(args.save_path + args.save_finetuned_model + '_acc_9dim.csv', float_format='%.6f', index=False)
+    pd.DataFrame(np.array(out[3]).reshape(9,-1), columns=['mse','mae']).to_csv(args.result_path + args.save_finetuned_model + '_acc_9dim.csv', float_format='%.6f', index=False)
     # 输出平均w-distance
-    # pd.DataFrame(np.array(out[4][0]).reshape(1,-1), columns=['w-distance']).to_csv(args.save_path + args.save_finetuned_model + '_acc_w_distance.csv', float_format='%.6f', index=False)
+    # pd.DataFrame(np.array(out[4][0]).reshape(1,-1), columns=['w-distance']).to_csv(args.result_path + args.save_finetuned_model + '_acc_w_distance.csv', float_format='%.6f', index=False)
     # 输出9维w-distance
-    pd.DataFrame(data={'avg w-distance': out[4][0], 'each dim w-distance': out[4][1]}).to_csv(args.save_path + args.save_finetuned_model + '_acc_w_distance_9dim.csv', float_format='%.6f', index=False)
-    # pd.DataFrame(np.array(out[4][1]).reshape(1,-1), columns=['mse','mae']).to_csv(args.save_path + args.save_finetuned_model + '_acc_w_distance_9dim.csv', float_format='%.6f', index=False)
+    pd.DataFrame(data={'avg w-distance': out[4][0], 'each dim w-distance': out[4][1]}).to_csv(args.result_path + args.save_finetuned_model + '_acc_w_distance_9dim.csv', float_format='%.6f', index=False)
+    # pd.DataFrame(np.array(out[4][1]).reshape(1,-1), columns=['mse','mae']).to_csv(args.result_path + args.save_finetuned_model + '_acc_w_distance_9dim.csv', float_format='%.6f', index=False)
 
 def test_func(weight_path):
     # get dataloader
@@ -219,7 +202,7 @@ def test_func(weight_path):
     learn = Learner(dls, model,cbs=cbs)
     out  = learn.test(dls.test, weight_path=weight_path+'.pth', scores=[mse,mae])         # out: a list of [pred, targ, score]
     # save results
-    pd.DataFrame(np.array(out[2]).reshape(1,-1), columns=['mse','mae']).to_csv(args.save_path + args.save_finetuned_model + '_acc.csv', float_format='%.6f', index=False)
+    pd.DataFrame(np.array(out[2]).reshape(1,-1), columns=['mse','mae']).to_csv(args.result_path + args.save_finetuned_model + '_acc.csv', float_format='%.6f', index=False)
     # save target results
     save_format_result(out)
     return out
@@ -235,7 +218,7 @@ if __name__ == '__main__':
         finetune_func(suggested_lr)        
         print('finetune completed')
         # Test
-        out = test_func(args.save_path+args.save_finetuned_model)         
+        out = test_func(args.model_path+args.save_finetuned_model)         
         print('----------- Complete! -----------')
 
     elif args.is_linear_probe:
@@ -245,13 +228,12 @@ if __name__ == '__main__':
         linear_probe_func(suggested_lr)        
         print('finetune completed')
         # Test
-        out = test_func(args.save_path+args.save_finetuned_model)        
+        out = test_func(args.model_path+args.save_finetuned_model)        
         print('----------- Complete! -----------')
 
     else:
         args.dset = args.dset_finetune
-        weight_path = args.save_path+args.dset_finetune+'_patchtst_finetuned'+suffix_name
-        # weight_path = 'saved_models/5138/source_domain/masked_patchtst/based_model/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1'
+        weight_path = args.pretrained_model if args.pretrained_model else args.model_path+args.dset_finetune+'_patchtst_finetuned'+suffix_name
         print('weight_path',weight_path)
         # Test
         out = test_func(weight_path)        

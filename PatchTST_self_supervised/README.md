@@ -1,6 +1,5 @@
 # trajectory-on-PatchTST
 
-
 ## 一、执行脚本
 
 - pre-train script 预训练脚本
@@ -29,10 +28,10 @@ python patchtst_finetune.py --dset source_domain --is_linear_probe 1 --pretraine
 python patchtst_finetune.py --dset <target_domain_name> --is_finetune 1 --pretrained_model <module_path>
 
 # examples
-python patchtst_finetune.py --dset CAV-H --is_finetune 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
-python patchtst_finetune.py --dset s0.3548_m907 --is_finetune 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
-python patchtst_finetune.py --dset HTV2 --is_finetune 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
-python patchtst_finetune.py --dset processed_data_55 --is_finetune 1 --pretrained_mode saved_models/source_domain/masked_patchtst/based_model/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+python patchtst_finetune.py --dset CAV-H --is_finetune 1 --pretrained_mode saved_models/source_domain/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+python patchtst_finetune.py --dset s0.3548_m907 --is_finetune 1 --pretrained_mode saved_models/source_domain/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+python patchtst_finetune.py --dset HTV2 --is_finetune 1 --pretrained_mode saved_models/source_domain/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
+python patchtst_finetune.py --dset processed_data_55 --is_finetune 1 --pretrained_mode saved_models/source_domain/patchtst_pretrained_cw100_patch10_stride10_epochs-pretrain10_mask0.1_model1.pth
 ```
 
 - only test script 仅仅用于测试
@@ -41,9 +40,13 @@ python patchtst_finetune.py --dset processed_data_55 --is_finetune 1 --pretraine
 python patchtst_finetune.py --dset <target_domain_name> --pretrained_model <module_path>
 
 # examples
-python patchtst_finetune.py --dset CAV-H
-python patchtst_finetune.py --dset s0.3548_m907
-python patchtst_finetune.py --dset HTV2
+python patchtst_finetune.py --patch_len 20 --stride 20 --dset CAV-H
+python patchtst_finetune.py --patch_len 20 --stride 20 --dset s0.3548_m907 --dataset_size 10276
+python patchtst_finetune.py --patch_len 20 --stride 20 --dset HTV2 --dataset_size 10276
+
+python patchtst_finetune.py --dset CAV-H --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1 --dataset_size 20552
+python patchtst_finetune.py --dset s0.3548_m907 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
+python patchtst_finetune.py --dset HTV2 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
 ```
 
 ## 二、结果保存
@@ -53,8 +56,6 @@ python patchtst_finetune.py --dset HTV2
 > - `base_dir`: saved_models\processed_data_55\masked_patchtst\based_model\xxx
 > - 文件路径中包含fine-tuned为整体微调的结果以及模型
 > - 文件路径中包含linear-probe为仅微调head的结果以及模型
-
-
 
 1. acc_9dim.csv（重要）
 

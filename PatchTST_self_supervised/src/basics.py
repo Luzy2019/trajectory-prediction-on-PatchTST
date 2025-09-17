@@ -47,7 +47,6 @@ def get_device(use_cuda=True, device_id=None, usage=5):
 def set_device(usage=5):    
     "set the device that has usage < default usage  "
     device_ids = get_available_cuda(usage=usage)
-    print('device_ids', device_ids)
     torch.cuda.set_device(device_ids[0])   # get the first available device
 
 
@@ -59,11 +58,10 @@ def default_device(use_cuda=True):
 
 
 def get_available_cuda(usage=10):
-    print('torch.cuda.is_available()',  torch.cuda.is_available())
+    print('torch.cuda.is_available：',  torch.cuda.is_available())
     if not torch.cuda.is_available(): return
     # collect available cuda devices, only collect devices that has less that 'usage' percent 
     device_ids = []
-    print('torch.cuda.device_count()', torch.cuda.device_count())
     for device in range(torch.cuda.device_count()):
         # if torch.cuda.utilization(device) < usage: device_ids.append(device)
         device_ids.append(device)
