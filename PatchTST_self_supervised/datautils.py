@@ -17,7 +17,7 @@ def get_dls(params):
     if not hasattr(params,'use_time_features'): params.use_time_features = False
 
     ROOT_PATH = f'./dataset/{params.dataset_size}/dg/' if params.dataset_augmented else f'./dataset/{params.dataset_size}/'
-    DATA_PATH = params.dset + '.csv'
+    DATA_PATH = f'test/{params.dset}.csv' if params.is_test else f'{params.dset}.csv'
     
     size = [params.context_points, 0, params.target_points]
     dls = DataLoaders(

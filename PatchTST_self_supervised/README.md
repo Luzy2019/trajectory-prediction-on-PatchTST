@@ -42,14 +42,14 @@ python patchtst_finetune.py --dset <target_domain_name> --pretrained_model <modu
 
 # examples
 # 测试 fine-tune
-python patchtst_finetune.py --dset s0.3548_m907 --patch_len 20 --stride 20 --dataset_size 5138
-python patchtst_finetune.py --dset HTV2 --patch_len 20 --stride 20 --dataset_size 5138
-python patchtst_finetune.py --dset CAV-H --patch_len 20 --stride 20 --dataset_size 5138
+python patchtst_finetune.py --is_test 1 --dset s0.3548_m907 --patch_len 20 --stride 20 --dataset_size 5138
+python patchtst_finetune.py --is_test 1 --dset HTV2 --patch_len 20 --stride 20 --dataset_size 5138
+python patchtst_finetune.py --is_test 1 --dset CAV-H --patch_len 20 --stride 20 --dataset_size 5138
 
 # 测试linear-probe
-python patchtst_finetune.py --dset CAV-H --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
-python patchtst_finetune.py --dset s0.3548_m907 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
-python patchtst_finetune.py --dset HTV2 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1
+python patchtst_finetune.py --is_test 1 --dset CAV-H --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1 --dataset_size 5138
+python patchtst_finetune.py --is_test 1 --dset s0.3548_m907 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1 --dataset_size 5138
+python patchtst_finetune.py --is_test 1 --dset HTV2 --pretrained_model saved_models/source_domain/source_domain_patchtst_linear-probe_cw100_tw100_patch100_stride100_epochs-finetune20_model1 --dataset_size 5138
 ```
 
 ## 二、结果保存
