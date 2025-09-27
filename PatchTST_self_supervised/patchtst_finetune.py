@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import torch
 from torch import nn
+import matplotlib.pyplot as plt
 
 from src.models.patchTST import PatchTST
 from src.learner import Learner, transfer_weights
@@ -13,6 +14,7 @@ from src.callback.transforms import *
 from src.metrics import *
 from src.basics import set_device
 from datautils import *
+from config import *
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -21,41 +23,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--is_finetune', type=int, default=0, help='do finetuning or not')
 parser.add_argument('--is_linear_probe', type=int, default=0, help='if linear_probe: only finetune the last layer')
 parser.add_argument('--is_test', type=int, default=0, help='use test data')
-# Dataset and dataloader
-parser.add_argument('--dset_finetune', type=str, default='source_domain', help='dataset name')
-parser.add_argument('--context_points', type=int, default=100, help='sequence length')
-parser.add_argument('--target_points', type=int, default=100, help='forecast horizon')
-parser.add_argument('--batch_size', type=int, default=64, help='batch size')
-parser.add_argument('--num_workers', type=int, default=0, help='number of workers for DataLoader')
-parser.add_argument('--scaler', type=str, default='standard', help='scale the input data')
-parser.add_argument('--features', type=str, default='M', help='for multivariate model or univariate model')
-parser.add_argument('--dataset_size', type=str, default='5138', help='dataset size for finetuning')
-parser.add_argument('--dataset_augmented', type=int, default=0, help='use the augmented dataset to finetune model')
-# Patch
-parser.add_argument('--patch_len', type=int, default=100, help='patch length')
-parser.add_argument('--stride', type=int, default=100, help='stride between patch')
-# RevIN
-parser.add_argument('--revin', type=int, default=0, help='reversible instance normalization')
-# use time feature
-parser.add_argument('--use_time_features', type=int, default=1, help='use time feature')
-# Model args
-parser.add_argument('--n_layers', type=int, default=3, help='number of Transformer layers')
-parser.add_argument('--n_heads', type=int, default=16, help='number of Transformer heads')
-parser.add_argument('--d_model', type=int, default=64, help='Transformer d_model')
-parser.add_argument('--d_ff', type=int, default=256, help='Tranformer MLP dimension')
-parser.add_argument('--dropout', type=float, default=0.2, help='Transformer dropout')
-parser.add_argument('--head_dropout', type=float, default=0.2, help='head dropout')
-parser.add_argument('--partial_freeze', type=int, default=0, help='head dropout')
-# Optimization args
-parser.add_argument('--n_epochs_finetune', type=int, default=20, help='number of finetuning epochs')
-parser.add_argument('--lr', type=float, default=1e-4, help='learning rate')
-# Pretrained model name
-parser.add_argument('--pretrained_model', type=str, default=None, help='pretrained model name')
-# model id to keep track of the number of models saved
-parser.add_argument('--finetuned_model_id', type=int, default=1, help='id of the saved finetuned model')
-parser.add_argument('--model_type', type=str, default='based_model', help='for multivariate model or univariate model')
+parser.add_argument('--dset_finetune', type=str, default='source_domain', help='data_set name')
+parser.add_argument('--dataset_augmented', type=int, default=0, help='use dataset augmentation or not')
 
 args = parser.parse_args()
+if args.is_finetune: args = merge_namespaces(FINETUNE_CONFIG, args)
+elif args.is_linear_probe: args = merge_namespaces(BASELINE_CONFIG, args)
+elif args.is_test == 1: args = merge_namespaces(TEST_BL_CONFIG, args)
+elif args.is_test == 2: args = merge_namespaces(TEST_FT_CONFIG, args) # 1 base-line 2 fine-tune
+else: raise ValueError('Invalid argument')
+
+print('args:', args)
 args.model_path = 'saved_models/' + args.dset_finetune + '/'
 if not os.path.exists(args.model_path): os.makedirs(args.model_path)
 args.result_path = 'saved_results/' + args.dset_finetune + '/' + args.dataset_size + '/'
@@ -157,6 +135,7 @@ def finetune_func(lr=args.lr):
     # fit the data to the model
     #learn.fit_one_cycle(n_epochs=args.n_epochs_finetune, lr_max=lr)
     learn.fine_tune(n_epochs=args.n_epochs_finetune, base_lr=lr, freeze_epochs=10, partial_freeze=args.partial_freeze)
+    save_recorders(learn)
 
 def linear_probe_func(lr=args.lr):
     print('linear probing')
@@ -184,15 +163,53 @@ def linear_probe_func(lr=args.lr):
                         )                            
     # fit the data to the model
     learn.linear_probe(n_epochs=args.n_epochs_finetune, base_lr=lr)
+    # save_recorders(learn)
 
 def save_format_result(out):
-    # 输出9维的mse,mae
-    pd.DataFrame(np.array(out[3]).reshape(9,-1), columns=['mse','mae']).to_csv(args.result_path + args.save_finetuned_model + '_acc_9dim.csv', float_format='%.6f', index=False)
-    # 输出平均w-distance
-    # pd.DataFrame(np.array(out[4][0]).reshape(1,-1), columns=['w-distance']).to_csv(args.result_path + args.save_finetuned_model + '_acc_w_distance.csv', float_format='%.6f', index=False)
+    # 输出每条记录后三维的平均mse和所有记录后三位平均mse
+    # 将numpy数组转换为数值列表
+    mse_values = [float(item[0]) for item in out[3]]  # 提取每个数组的第一个值
+    average_value = float(np.array([item[0] for item in out[3]]).mean())  # 计算平均值并转换为单个数值
+    df_data = {
+        'mse': mse_values,
+        'average': [average_value] + [None] * (len(mse_values) - 1)  # 只在第一行显示平均值
+    }
+    pd.DataFrame(df_data).to_csv(args.result_path + args.save_finetuned_model + '_acc_last_3dim.csv', float_format='%.6f', index=False)
     # 输出9维w-distance
     pd.DataFrame(data={'avg w-distance': out[4][0], 'each dim w-distance': out[4][1]}).to_csv(args.result_path + args.save_finetuned_model + '_acc_w_distance_9dim.csv', float_format='%.6f', index=False)
-    # pd.DataFrame(np.array(out[4][1]).reshape(1,-1), columns=['mse','mae']).to_csv(args.result_path + args.save_finetuned_model + '_acc_w_distance_9dim.csv', float_format='%.6f', index=False)
+    # pd.DataFrame(np.array(out[4][1]).reshape(1,-1), columns=['mse']).to_csv(args.result_path + args.save_finetuned_model + '_acc_w_distance_9dim.csv', float_format='%.6f', index=False)
+
+def save_recorders(learn):
+    train_loss = learn.recorder['train_loss']
+    valid_loss = learn.recorder['valid_loss']
+    df = pd.DataFrame(data={'train_loss': train_loss, 'valid_loss': valid_loss})
+    df.to_csv(args.model_path + args.save_finetuned_model + '_losses.csv', float_format='%.6f', index=False)
+    
+    # 设置中文字体
+    plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'DejaVu Sans']  # 设置中文字体
+    plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
+    
+    # 绘制损失曲线图
+    plt.figure(figsize=(10, 6))
+    epochs = range(1, len(train_loss) + 1)
+    
+    plt.plot(epochs, train_loss, 'b-', label='Train Loss', linewidth=2)
+    if valid_loss:  # 如果有验证损失数据
+        plt.plot(epochs, valid_loss, 'r-', label='Valid Loss', linewidth=2)
+    
+    plt.title(f'Train/Valid Loss Curve', fontsize=14, fontweight='bold')
+    plt.xlabel('Epochs', fontsize=12)
+    plt.ylabel('Loss', fontsize=12)
+    plt.legend(fontsize=11)
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    # 保存图片
+    plot_path = args.model_path + args.save_finetuned_model + '_losses.png'
+    plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+    plt.close()  # 关闭图形以释放内存
+    
+    print(f'Loss curve plot saved to: {plot_path}')
 
 def test_func(weight_path):
     # get dataloader
@@ -202,13 +219,12 @@ def test_func(weight_path):
     cbs = [RevInCB(dls.vars, denorm=True)] if args.revin else []
     cbs += [PatchCB(patch_len=args.patch_len, stride=args.stride)]
     learn = Learner(dls, model,cbs=cbs)
-    out  = learn.test(dls.test, weight_path=weight_path+'.pth', scores=[mse,mae])         # out: a list of [pred, targ, score]
+    out  = learn.test(dls.test, weight_path=weight_path+'.pth', scores=[mse])         # out: a list of [pred, targ, score]
     # save results
-    pd.DataFrame(np.array(out[2]).reshape(1,-1), columns=['mse','mae']).to_csv(args.result_path + args.save_finetuned_model + '_acc.csv', float_format='%.6f', index=False)
+    pd.DataFrame(np.array(out[2]).reshape(1,-1), columns=['mse']).to_csv(args.result_path + args.save_finetuned_model + '_acc.csv', float_format='%.6f', index=False)
     # save target results
     save_format_result(out)
     return out
-
 
 
 if __name__ == '__main__':

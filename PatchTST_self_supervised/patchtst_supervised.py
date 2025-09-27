@@ -142,7 +142,7 @@ def test_func():
     cbs = [RevInCB(dls.vars)] if args.revin else []
     cbs += [PatchCB(patch_len=args.patch_len, stride=args.stride)]
     learn = Learner(dls, model,cbs=cbs)
-    out  = learn.test(dls.test, weight_path=weight_path, scores=[mse,mae])         # out: a list of [pred, targ, score_values]
+    out  = learn.test(dls.test, weight_path=weight_path, scores=[mse])         # out: a list of [pred, targ, score_values]
     return out
 
 
