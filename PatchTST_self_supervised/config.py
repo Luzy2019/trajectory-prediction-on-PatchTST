@@ -35,9 +35,9 @@ FINETUNE_CONFIG = SimpleNamespace(
     d_ff = 256,
     dropout = 0.2,
     head_dropout = 0.2,
-    partial_freeze = 0,
+    partial_freeze = 0, # 1: 只微调最外层 2：微调后2层，3：微调全部3层
     # Optimization args
-    n_epochs_finetune = 50,
+    n_epochs_finetune = 20,
     lr = 1e-4,
     # Pretrained model name
     pretrained_model = PETRAINED_MODEL_PATH,

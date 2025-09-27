@@ -394,14 +394,15 @@ class Learner(GetAttr):
             
             
     def unfreeze(self, partial_freeze):
-        if partial_freeze:
-            # for param in get_model(self.model).backbone.W_P.parameters(): param.requires_grad = True
-            # for param in get_model(self.model).backbone.dropout.parameters(): param.requires_grad = True
-            if not get_model(self.model): raise Exception("unfreeze failed, no model found...")
 
+        # partial_freeze:
+        # 1: 只微调最外层 2：微调后2层，3：微调全部3层
+        if partial_freeze:
+            if not get_model(self.model): raise Exception("unfreeze failed, no model found...")
             # partial unfreeze
-            for layer in get_model(self.model).backbone.encoder.layers:
+            for layer in get_model(self.model).backbone.encoder.layers[-partial_freeze:]:
                 for param in layer.parameters(): param.requires_grad = True
+            for param in get_model(self.model).head.parameters(): param.requires_grad = True
         else:
             for param in get_model(self.model).parameters(): param.requires_grad = True
 
