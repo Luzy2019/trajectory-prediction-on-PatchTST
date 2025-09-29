@@ -30,13 +30,13 @@ args = parser.parse_args()
 if args.is_finetune: args = merge_namespaces(FINETUNE_CONFIG, args)
 elif args.is_linear_probe: args = merge_namespaces(BASELINE_CONFIG, args)
 elif args.is_test == 1: args = merge_namespaces(TEST_BL_CONFIG, args)
-elif args.is_test == 2: args = merge_namespaces(TEST_FT_CONFIG, args) # 1 base-line 2 fine-tune
+elif args.is_test == 2 or args.is_test == 3: args = merge_namespaces(TEST_FT_CONFIG, args) # 1 base-line 2 fine-tune
 else: raise ValueError('Invalid argument')
 
 print('args:', args)
-args.model_path = 'saved_models/' + args.dset_finetune + '/'
+args.model_path = 'accompanying_algorithm/saved_models/' + args.dset_finetune + '/' if args.is_test == 3 else 'saved_models/' + args.dset_finetune + '/'
 if not os.path.exists(args.model_path): os.makedirs(args.model_path)
-args.result_path = 'saved_results/' + args.dset_finetune + '/' + args.dataset_size + '/'
+args.result_path = 'accompanying_algorithm/saved_results/' + args.dset_finetune + '/' + args.dataset_size + '/' if args.is_test == 3 else 'saved_results/' + args.dset_finetune + '/' + args.dataset_size + '/'
 if not os.path.exists(args.result_path): os.makedirs(args.result_path)
 
 # args.save_finetuned_model = '_cw'+str(args.context_points)+'_tw'+str(args.target_points) + '_patch'+str(args.patch_len) + '_stride'+str(args.stride) + '_epochs-finetune' + str(args.n_epochs_finetune) + '_mask' + str(args.mask_ratio)  + '_model' + str(args.finetuned_model_id)
