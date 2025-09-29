@@ -36,3 +36,13 @@ python patchtst_finetune.py --is_test 2 --dset HTV2
 
 6. 查看记录
 `saved_results/CAV-H/20552/CAV-H_patchtst_finetuned_cw100_tw100_patch20_stride20_epochs-finetune20_model1_acc_last_3dim.csv`
+
+7. 测试陪试模型在`CAV-H`,`s0.3548_m907`,`HTV2`数据集上的结果
+```sh
+python patchtst_finetune.py --is_test 3 --dset CAV-H
+python patchtst_finetune.py --is_test 3 --dset s0.3548_m907
+python patchtst_finetune.py --is_test 3 --dset HTV2
+```
+
+8. 查看记录
+`accompanying_algorithm/saved_results/CAV-H/20552/CAV-H_patchtst_finetuned_cw100_tw100_patch20_stride20_epochs-finetune20_model1_acc_last_3dim.csv`
