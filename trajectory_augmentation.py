@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 from tqdm import tqdm
 import argparse
+from config import input_dir, base_output_dir, methods, method_params
 
 # 配置matplotlib中文字体支持
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'DejaVu Sans', 'Arial Unicode MS']
@@ -275,61 +276,253 @@ class TrajectoryAugmentation:
 
         return augmented_data
 
+    def combined_augmentation(self, data, methods=['time_warp', 'magnitude_warp', 'jittering'], **kwargs):
+        """
+        组合多种数据增强方法
+        
+        Args:
+            data: 输入数据
+            methods: 要应用的增强方法列表
+            **kwargs: 各方法的参数
+        
+        Returns:
+            增强后的数据
+        """
+        augmented_data = data.copy()
+        
+        # 依次应用每种增强方法
+        for method in methods:
+            if method in self.methods:
+                # 获取该方法的参数
+                method_params = kwargs.get(method, {})
+                augmented_data = self.methods[method](augmented_data, **method_params)
+            else:
+                print(f"警告: 未知的增强方法 '{method}'")
+        
+        return augmented_data
+
+    def process_individual_augmentations(self, input_dir, output_dir, methods=['time_warp', 'magnitude_warp', 'jittering'], 
+                                       method_params=None, visualize=True):
+        """
+        对每个文件分别应用不同的增强方法
+        
+        Args:
+            input_dir: 输入目录
+            output_dir: 输出目录
+            methods: 要应用的增强方法列表
+            method_params: 各方法的参数字典
+            visualize: 是否生成可视化
+        """
+        if method_params is None:
+            method_params = {
+                'time_warp': {'sigma': 0.1, 'knot': 4},
+                'magnitude_warp': {'sigma': 0.1, 'knot': 4},
+                'jittering': {'sigma': 0.01}
+            }
+        
+        # 获取所有轨迹文件
+        trajectory_files = glob.glob(os.path.join(input_dir, "*.txt"))
+        
+        if not trajectory_files:
+            print(f"在 {input_dir} 中未找到任何TXT文件")
+            return
+        
+        print(f"找到 {len(trajectory_files)} 个轨迹文件，开始单独增强处理...")
+        
+        # 处理每个文件
+        for file_path in tqdm(trajectory_files, desc="处理文件"):
+            try:
+                # 加载轨迹数据
+                trajectory = self.load_trajectory(file_path)
+                file_name = os.path.basename(file_path)
+                base_name = os.path.splitext(file_name)[0]
+                
+                # 对每种方法分别应用
+                for method in methods:
+                    if method in self.methods:
+                        # 应用增强方法
+                        augmented_data = self.methods[method](trajectory.copy(), **method_params.get(method, {}))
+                        
+                        # 创建输出目录
+                        _output_dir = os.path.join(output_dir, method)
+                        if not os.path.exists(_output_dir):
+                            os.makedirs(_output_dir)
+
+                        # 保存增强后的数据
+                        output_file = os.path.join(_output_dir, f"{base_name}_aug_{method}_1.txt")
+                        self.save_trajectory(augmented_data, output_file)
+                        
+                        # 生成可视化
+                        if visualize:
+                            self.visualize_individual_augmentation(trajectory, augmented_data, method, output_dir, base_name)
+                    else:
+                        print(f"警告: 未知的增强方法 '{method}'")
+                        
+            except Exception as e:
+                print(f"处理文件 {file_path} 时出错: {str(e)}")
+
+    def process_combined_augmentation(self, input_dir, output_dir, methods=['time_warp', 'magnitude_warp', 'jittering'],
+                                    method_params=None, visualize=True):
+        """
+        对每个文件应用组合增强方法
+        
+        Args:
+            input_dir: 输入目录
+            output_dir: 输出目录
+            methods: 要组合的增强方法列表
+            method_params: 各方法的参数字典
+            visualize: 是否生成可视化
+        """
+        if method_params is None:
+            method_params = {
+                'time_warp': {'sigma': 0.1, 'knot': 4},
+                'magnitude_warp': {'sigma': 0.1, 'knot': 4},
+                'jittering': {'sigma': 0.01}
+            }
+        
+        # 创建输出目录
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        
+        # 获取所有轨迹文件
+        trajectory_files = glob.glob(os.path.join(input_dir, "*.txt"))
+        
+        if not trajectory_files:
+            print(f"在 {input_dir} 中未找到任何TXT文件")
+            return
+        
+        print(f"找到 {len(trajectory_files)} 个轨迹文件，开始组合增强处理...")
+        
+        # 处理每个文件
+        for file_path in tqdm(trajectory_files, desc="处理文件"):
+            try:
+                # 加载轨迹数据
+                trajectory = self.load_trajectory(file_path)
+                file_name = os.path.basename(file_path)
+                base_name = os.path.splitext(file_name)[0]
+                
+                # 应用组合增强
+                combined_augmented_data = self.combined_augmentation(trajectory.copy(), methods, **method_params)
+                
+                # 保存增强后的数据
+                output_file = os.path.join(output_dir, f"{base_name}_aug_combined_1.txt")
+                self.save_trajectory(combined_augmented_data, output_file)
+                
+                # 生成可视化
+                if visualize:
+                    self.visualize_combined_augmentation(trajectory, combined_augmented_data, methods, output_dir, base_name)
+                    
+            except Exception as e:
+                print(f"处理文件 {file_path} 时出错: {str(e)}")
+
+    def visualize_individual_augmentation(self, original_data, augmented_data, method_name, output_dir, base_name):
+        """可视化单个增强方法的效果"""
+        n_features = min(9, original_data.shape[1])  # 最多显示前3个特征
+        
+        fig, axes = plt.subplots(n_features, 1, figsize=(10, 3 * n_features))
+        if n_features == 1:
+            axes = [axes]
+        
+        time_steps = np.arange(len(original_data))
+        
+        for i in range(n_features):
+            ax = axes[i]
+            ax.plot(time_steps, original_data[:, i], 'b-', label='原始数据', linewidth=2)
+            ax.plot(time_steps, augmented_data[:, i], 'r-', label='增强数据', linewidth=2)
+            ax.set_title(f'特征 {i + 1} - 增强方法: {method_name}')
+            ax.set_xlabel('时间步')
+            ax.set_ylabel('数值')
+            ax.grid(True, alpha=0.3)
+            ax.legend()
+        
+        plt.tight_layout()
+        
+        # 保存图表
+        viz_path = os.path.join(output_dir, method_name, f"{base_name}_{method_name}_visualization.png")
+        plt.savefig(viz_path, dpi=300, bbox_inches='tight')
+        plt.close()
+
+    def visualize_combined_augmentation(self, original_data, augmented_data, methods, output_dir, base_name):
+        """可视化组合增强方法的效果"""
+        n_features = min(3, original_data.shape[1])  # 最多显示前3个特征
+        
+        fig, axes = plt.subplots(n_features, 1, figsize=(10, 3 * n_features))
+        if n_features == 1:
+            axes = [axes]
+        
+        time_steps = np.arange(len(original_data))
+        method_str = '+'.join(methods)
+        
+        for i in range(n_features):
+            ax = axes[i]
+            ax.plot(time_steps, original_data[:, i], 'b-', label='原始数据', linewidth=2)
+            ax.plot(time_steps, augmented_data[:, i], 'r-', label='组合增强数据', linewidth=2)
+            ax.set_title(f'特征 {i + 1} - 组合增强方法: {method_str}')
+            ax.set_xlabel('时间步')
+            ax.set_ylabel('数值')
+            ax.grid(True, alpha=0.3)
+            ax.legend()
+        
+        plt.tight_layout()
+        
+        # 保存图表
+        viz_path = os.path.join(output_dir, f"{base_name}_combined_visualization.png")
+        plt.savefig(viz_path, dpi=300, bbox_inches='tight')
+        plt.close()
 
 def main():
     """命令行入口点"""
     parser = argparse.ArgumentParser(description="战斗机轨迹数据增强工具")
 
-    parser.add_argument("--input_dir", type=str, required=True,
+    parser.add_argument("--input_dir", type=str, required=False,
                         help="包含轨迹TXT文件的输入目录")
-    parser.add_argument("--output_dir", type=str, required=True,
+    parser.add_argument("--output_dir", type=str, required=False,
                         help="保存增强数据的输出目录")
-    parser.add_argument("--methods", type=str, nargs="+", default=["time_shift", "noise_injection", "jittering"],
+    parser.add_argument("--methods", type=str, nargs="+", default=["time_warp", "magnitude_warp", "jittering"],
                         help="要使用的增强方法，可选多个")
-    parser.add_argument("--n_augmentations", type=int, default=3,
+    parser.add_argument("--n_augmentations", type=int, default=1,
                         help="每个输入文件生成的增强文件数量")
     parser.add_argument("--visualize", action="store_true",
                         help="是否生成可视化结果")
+    parser.add_argument("--mode", type=str, choices=["individual", "combined"], default="original",
+                        help="增强模式: individual(单独增强), combined(组合增强)")
 
     args = parser.parse_args()
-
-    # 设置各个方法的默认参数
-    method_configs = []
-
-    for method in args.methods:
-        if method == "time_shift":
-            method_configs.append(("time_shift", {"shift_range": (-10, 10)}))
-        elif method == "noise_injection":
-            method_configs.append(("noise_injection", {"scale": 0.005}))
-        elif method == "random_scaling":
-            method_configs.append(("random_scaling",
-                                   {"features_to_scale": None, "min_scale": 0.95, "max_scale": 1.05}))
-        elif method == "jittering":
-            method_configs.append(("jittering", {"sigma": 0.01}))
-        elif method == "time_warp":
-            method_configs.append(("time_warp", {"sigma": 0.1, "knot": 4}))
-        elif method == "magnitude_warp":
-            method_configs.append(("magnitude_warp", {"sigma": 0.1, "knot": 4}))
-        elif method == "window_slice":
-            method_configs.append(("window_slice", {"reduce_ratio": 0.95}))
-        elif method == "smoothing":
-            method_configs.append(("smoothing", {"window_length": 11, "polyorder": 3}))
-        elif method == "permutation":
-            method_configs.append(("permutation", {"max_segments": 3}))
-        else:
-            print(f"警告: 未知的增强方法 '{method}'")
 
     # 初始化增强器
     augmenter = TrajectoryAugmentation()
 
-    # 处理数据
-    augmenter.process_directory(
-        args.input_dir,
-        args.output_dir,
-        method_configs,
-        args.n_augmentations,
-        args.visualize
-    )
+    _input_dir = args.input_dir or input_dir
+    _output_dir = args.output_dir or os.path.join(f"{base_output_dir}-{args.mode}")
+    _methods =  args.methods or methods
+
+    _method_params = method_params
+
+    # 根据模式选择处理方式
+    if args.mode == "individual":
+        # 单独增强模式：分别应用time_warp, magnitude_warp, jittering
+        print("执行单独数据增强模式...")
+        augmenter.process_individual_augmentations(
+            _input_dir,
+            _output_dir,
+            _methods,
+            _method_params,
+            args.visualize
+        )
+        
+    elif args.mode == "combined":
+        # 组合增强模式：同时应用三种方法
+        print("执行组合数据增强模式...")
+        augmenter.process_combined_augmentation(
+            _input_dir,
+            _output_dir,
+            _methods,
+            _method_params,
+            args.visualize
+        )
+
+    else:
+        raise Exception('输入参数有误，请查看参数')
 
     print(f"数据增强完成！增强后的轨迹保存在 {args.output_dir}")
 
