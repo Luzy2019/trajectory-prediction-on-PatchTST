@@ -40,16 +40,16 @@ python trajectory_augmentation.py --mode combined --visualize
 #### 3. 效果图
 
 ##### 3.1 jittering
-![CAV-H-5138_jittering_visualization](docs\CAV-H-5138_jittering_visualization.png)
+![CAV-H-5138_jittering_visualization](docs/CAV-H-5138_jittering_visualization.png)
 
 ##### 3.2 magnitude_warp
-![CAV-H-5138_magnitude_warp_visualization](docs\CAV-H-5138_magnitude_warp_visualization.png)
+![CAV-H-5138_magnitude_warp_visualization](docs/CAV-H-5138_magnitude_warp_visualization.png)
 
 ##### 3.3 time_warp
-![CAV-H-5138_time_warp_visualization](docs\CAV-H-5138_time_warp_visualization.png)
+![CAV-H-5138_time_warp_visualization](docs/CAV-H-5138_time_warp_visualization.png)
 
 ##### 3.4 combined(jittering + magnitude_warp + time_warp)
-![CAV-H-5138_combined_visualization](docs\CAV-H-5138_combined_visualization.png)
+![CAV-H-5138_combined_visualization](docs/CAV-H-5138_combined_visualization.png)
 
 ## 输出结构
 
