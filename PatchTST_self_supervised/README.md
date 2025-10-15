@@ -26,6 +26,14 @@ python patchtst_finetune.py --dset <target_domain_name> --is_finetune 1 --datase
 python patchtst_finetune.py --dset CAV-H --is_finetune 1 --dataset_augmented 1
 python patchtst_finetune.py --dset s0.3548_m907 --is_finetune 1 --dataset_augmented 1
 python patchtst_finetune.py --dset HTV2 --is_finetune 1 --dataset_augmented 1
+
+# partial parameters finetune
+python patchtst_finetune.py --dset <target_domain_name> --is_finetune 1 --dataset_augmented 1 --partial_freeze <1|2|3>
+
+# examples
+python patchtst_finetune.py --dset CAV-H --is_finetune 1 --dataset_augmented 1 --partial_freeze 3
+python patchtst_finetune.py --dset s0.3548_m907 --is_finetune 1 --dataset_augmented 1 --partial_freeze 3
+python patchtst_finetune.py --dset HTV2 --is_finetune 1 --dataset_augmented 1 --partial_freeze 3
 ```
 
 - test 测试
@@ -43,6 +51,11 @@ python patchtst_finetune.py --is_test 1 --dset CAV-H
 python patchtst_finetune.py --is_test 2 --dset CAV-H
 python patchtst_finetune.py --is_test 2 --dset s0.3548_m907
 python patchtst_finetune.py --is_test 2 --dset HTV2
+
+# 测试 陪试模型
+python patchtst_finetune.py --is_test 3 --dset CAV-H
+python patchtst_finetune.py --is_test 3 --dset s0.3548_m907
+python patchtst_finetune.py --is_test 3 --dset HTV2
 ```
 
 ## 二、结果保存
