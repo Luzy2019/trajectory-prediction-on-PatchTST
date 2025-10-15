@@ -288,17 +288,17 @@ class Learner(GetAttr):
             # calculate avg scores
             s_vals = [score(cb.targets, cb.preds).to('cpu').numpy() for score in list(scores)]
             # calculate avg scores
-            # s_dims_vals = []
+            s_dims_vals = []
             s_len_vals = []
-            # for dim in range(self.targets.shape[2]):
-            #     s_dims_val = [score(cb.targets[:,:,dim], cb.preds[:,:,dim]).to('cpu').numpy() for score in list(scores)]
-            #     s_dims_vals.append(s_dims_val)
+            for dim in range(self.targets.shape[2]):
+                s_dims_val = [score(cb.targets[:,:,dim], cb.preds[:,:,dim]).to('cpu').numpy() for score in list(scores)]
+                s_dims_vals.append(s_dims_val)
             # for record in range(self.targets.shape[0]):
             for record in range(cb.targets.shape[0]):
                 s_len_val = [score(cb.targets[record,:,6:9], cb.preds[record,:,6:9]).to('cpu').numpy() for score in list(scores)]
                 s_len_vals.append(s_len_val)
             # print results
-            return self.preds, self.targets, s_vals, s_len_vals, [avg_w_dist, dim_w_dist], 
+            return self.preds, self.targets, s_vals, s_len_vals, [avg_w_dist, dim_w_dist], s_dims_vals
             # return self.preds, self.targets, s_vals, s_dims_vals
         else: 
             return self.preds, self.targets

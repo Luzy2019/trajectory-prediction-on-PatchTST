@@ -32,8 +32,9 @@ def get_dls(params):
             _test_split = 0.3
     
     size = [params.context_points, 0, params.target_points]
+    dataset_cls = Dataset_Custom if not params.is_test else Dataset_Test
     dls = DataLoaders(
-        datasetCls=Dataset_Custom,      # dataset class: 数据集类
+        datasetCls=dataset_cls,      # dataset class: 数据集类
         dataset_kwargs={                # dataset key word args
         'root_path': ROOT_PATH,
         'data_path': DATA_PATH,

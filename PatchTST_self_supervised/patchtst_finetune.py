@@ -170,6 +170,7 @@ def save_format_result(out):
     # 将numpy数组转换为数值列表
     mse_values = [float(item[0]) for item in out[3]]  # 提取每个数组的第一个值
     average_value = float(np.array([item[0] for item in out[3]]).mean())  # 计算平均值并转换为单个数值
+    # print('mse_values dim', out[5])
     df_data = {
         'mse': mse_values,
         'average': [average_value] + [None] * (len(mse_values) - 1)  # 只在第一行显示平均值
